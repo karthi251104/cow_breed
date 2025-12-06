@@ -27,11 +27,20 @@ print("Number of classes:", len(CLASS_NAMES))
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
-CORS(app)  # Enable CORS for Angular, mobile, browser
+CORS(app, resources={r"/*": {"origins": "*"}})  # allow all origins
+
+# Add CORS headers manually for extra safety
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
 
 # ---------------- LOAD MODEL ----------------
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
+model.compile()   # remove warning
 print("Model loaded successfully!")
 
 # ---------------- IMAGE PREPROCESS ----------------
@@ -53,7 +62,7 @@ def predict(img):
     return label, conf
 
 # ======================================================
-# 📌 DEBUG ENDPOINT — Shows keys Thunder/Angular sends
+# 📌 DEBUG ENDPOINT — Check What Angular Is Sending
 # ======================================================
 @app.route("/debug", methods=["POST"])
 def debug():
@@ -70,7 +79,7 @@ def debug():
 @app.route("/predict", methods=["POST"])
 def predict_api():
 
-    print("FILES:", request.files)
+    print("FILES RECEIVED:", request.files)
 
     # Accept BOTH "image" and "file"
     file = request.files.get("image") or request.files.get("file")
@@ -81,7 +90,7 @@ def predict_api():
     try:
         img = Image.open(file.stream)
     except Exception as e:
-        print("Image error:", e)
+        print("Image open error:", e)
         return jsonify({"error": "Invalid image"}), 400
 
     breed, confidence = predict(img)
