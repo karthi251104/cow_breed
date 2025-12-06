@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from flask import Flask, request, jsonify
-from flask_cors import CORS   # <-- ADD THIS
+from flask_cors import CORS
 
 # ---------------- SETTINGS ----------------
 MODEL_PATH = "Best_Cattle_Breed.h5"
@@ -12,7 +12,7 @@ DATA_DIR = r"C:\Users\User\Downloads\archive\Indian_bovine_breeds\Indian_bovine_
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
-CORS(app)   # <-- ENABLE CORS FOR ALL ROUTES
+CORS(app)  # Allow all origins (Angular, Thunder Client, etc.)
 
 # ---------------- LOAD MODEL ----------------
 print("Loading model...")
@@ -30,6 +30,7 @@ else:
 
 print("Classes:", CLASS_NAMES)
 
+
 # ---------------- IMAGE PREPROCESS ----------------
 def preprocess(img):
     img = img.convert("RGB")
@@ -38,6 +39,7 @@ def preprocess(img):
     arr = tf.keras.applications.efficientnet_v2.preprocess_input(arr)
     arr = np.expand_dims(arr, axis=0)
     return arr
+
 
 # ---------------- PREDICT FUNCTION ----------------
 def predict(img):
@@ -48,11 +50,29 @@ def predict(img):
     label = CLASS_NAMES[idx] if CLASS_NAMES else str(idx)
     return label, conf
 
+
 # ======================================================
-# 📌 API: /predict  — upload an image & get JSON response
+# 📌 DEBUG ENDPOINT — CHECK WHAT Thunder Client is sending
+# ======================================================
+@app.route("/debug", methods=["POST"])
+def debug():
+    print("FILES RECEIVED:", request.files)
+    print("FORM RECEIVED:", request.form)
+    return jsonify({
+        "files_received": list(request.files.keys()),
+        "form_received": request.form.to_dict()
+    })
+
+
+# ======================================================
+# 📌 MAIN PREDICT ENDPOINT
 # ======================================================
 @app.route("/predict", methods=["POST"])
 def predict_api():
+
+    print("FILES:", request.files)  # DEBUG PRINT
+    print("FORM:", request.form)    # DEBUG PRINT
+
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
@@ -70,6 +90,7 @@ def predict_api():
         "confidence": confidence
     })
 
-# ---------------- RUN (local only) ----------------
+
+# ---------------- RUN LOCALLY ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
