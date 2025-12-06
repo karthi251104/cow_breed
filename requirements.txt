@@ -1,5 +1,8 @@
 flask
+<<<<<<< HEAD
 flask-cors
+=======
+>>>>>>> d2f192d0a139c7560d4e9fb0579185860dcc3f56
 tensorflow
 numpy
 pillow
