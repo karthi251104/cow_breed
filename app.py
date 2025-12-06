@@ -11,44 +11,14 @@ IMAGE_SIZE = (224, 224)
 
 # ---------------- MANUAL CLASS NAMES ----------------
 CLASS_NAMES = [
-    "Umblachery",
-    "Tharparkar",
-    "Toda",
-    "Sahiwal",
-    "Surti",
-    "Red_Dane",
-    "Rathi",
-    "Pulikulam",
-    "Ongole",
-    "Nimari",
-    "Nagpuri",
-    "Nili_Ravi",
-    "Nagori",
-    "Murrah",
-    "Mehsana",
-    "Malnad_Gidda",
-    "Krishna_Valley",
-    "Khillari",
-    "Kasargod",
-    "Kenkatha",
-    "Kherigarh",
-    "Kankrej",
-    "Kangayam",
-    "Jaffrabadi",
-    "Jersey",
-    "Holstein_Friesian",
-    "Hariana",
-    "Hallikar",
-    "Guernsey",
-    "Gir",
-    "Deoni",
-    "Dangi",
-    "Bhadawari",
-    "Brown_Swiss",
-    "Bargur",
-    "Banni",
-    "Ayrshire",
-    "Amritmahal",
+    "Umblachery", "Tharparkar", "Toda", "Sahiwal", "Surti",
+    "Red_Dane", "Rathi", "Pulikulam", "Ongole", "Nimari",
+    "Nagpuri", "Nili_Ravi", "Nagori", "Murrah", "Mehsana",
+    "Malnad_Gidda", "Krishna_Valley", "Khillari", "Kasargod",
+    "Kenkatha", "Kherigarh", "Kankrej", "Kangayam", "Jaffrabadi",
+    "Jersey", "Holstein_Friesian", "Hariana", "Hallikar",
+    "Guernsey", "Gir", "Deoni", "Dangi", "Bhadawari",
+    "Brown_Swiss", "Bargur", "Banni", "Ayrshire", "Amritmahal",
     "Alambadi"
 ]
 
@@ -57,12 +27,12 @@ print("Number of classes:", len(CLASS_NAMES))
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
-CORS(app)  # enable cross-origin access
+CORS(app)  # Enable CORS for Angular, mobile, browser
 
 # ---------------- LOAD MODEL ----------------
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
-print("Model loaded!")
+print("Model loaded successfully!")
 
 # ---------------- IMAGE PREPROCESS ----------------
 def preprocess(img):
@@ -83,34 +53,35 @@ def predict(img):
     return label, conf
 
 # ======================================================
-# 📌 DEBUG ENDPOINT — Check what Thunder Client sends
+# 📌 DEBUG ENDPOINT — Shows keys Thunder/Angular sends
 # ======================================================
 @app.route("/debug", methods=["POST"])
 def debug():
-    print("FILES RECEIVED:", request.files)
-    print("FORM RECEIVED:", request.form)
+    print("FILES:", request.files)
+    print("FORM:", request.form)
     return jsonify({
         "files_received": list(request.files.keys()),
         "form_received": request.form.to_dict()
     })
 
 # ======================================================
-# 📌 MAIN PREDICT ENDPOINT
+# 📌 MAIN PREDICTION ENDPOINT
 # ======================================================
 @app.route("/predict", methods=["POST"])
 def predict_api():
 
-    print("FILES:", request.files)  # for debugging
-    print("FORM:", request.form)    # for debugging
+    print("FILES:", request.files)
 
-    if "image" not in request.files:
+    # Accept BOTH "image" and "file"
+    file = request.files.get("image") or request.files.get("file")
+
+    if file is None:
         return jsonify({"error": "No image provided"}), 400
-
-    file = request.files["image"]
 
     try:
         img = Image.open(file.stream)
-    except:
+    except Exception as e:
+        print("Image error:", e)
         return jsonify({"error": "Invalid image"}), 400
 
     breed, confidence = predict(img)
@@ -123,9 +94,8 @@ def predict_api():
 # ---------------- ROOT ENDPOINT ----------------
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"message": "Cow Breed Prediction API is running"})
+    return jsonify({"message": "Cow Breed Prediction API is running!"})
 
-
-# ---------------- RUN LOCALLY ----------------
+# ---------------- RUN LOCAL ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
