@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from flask import Flask, request, jsonify
+from flask_cors import CORS   # <-- ADD THIS
 
 # ---------------- SETTINGS ----------------
 MODEL_PATH = "Best_Cattle_Breed.h5"
@@ -11,6 +12,7 @@ DATA_DIR = r"C:\Users\User\Downloads\archive\Indian_bovine_breeds\Indian_bovine_
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
+CORS(app)   # <-- ENABLE CORS FOR ALL ROUTES
 
 # ---------------- LOAD MODEL ----------------
 print("Loading model...")

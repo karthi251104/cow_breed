@@ -1,5 +1,7 @@
-tensorflow
 flask
 flask-cors
-Pillow
+tensorflow
 numpy
+pillow
+gunicorn
+h5py
