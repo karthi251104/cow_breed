@@ -8,28 +8,61 @@ from flask_cors import CORS
 # ---------------- SETTINGS ----------------
 MODEL_PATH = "Best_Cattle_Breed.h5"
 IMAGE_SIZE = (224, 224)
-DATA_DIR = "data"
+
+# ---------------- MANUAL CLASS NAMES ----------------
+CLASS_NAMES = [
+    "Umblachery",
+    "Tharparkar",
+    "Toda",
+    "Sahiwal",
+    "Surti",
+    "Red_Dane",
+    "Rathi",
+    "Pulikulam",
+    "Ongole",
+    "Nimari",
+    "Nagpuri",
+    "Nili_Ravi",
+    "Nagori",
+    "Murrah",
+    "Mehsana",
+    "Malnad_Gidda",
+    "Krishna_Valley",
+    "Khillari",
+    "Kasargod",
+    "Kenkatha",
+    "Kherigarh",
+    "Kankrej",
+    "Kangayam",
+    "Jaffrabadi",
+    "Jersey",
+    "Holstein_Friesian",
+    "Hariana",
+    "Hallikar",
+    "Guernsey",
+    "Gir",
+    "Deoni",
+    "Dangi",
+    "Bhadawari",
+    "Brown_Swiss",
+    "Bargur",
+    "Banni",
+    "Ayrshire",
+    "Amritmahal",
+    "Alambadi"
+]
+
+print("Loaded class names:", CLASS_NAMES)
+print("Number of classes:", len(CLASS_NAMES))
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
-CORS(app)  # Allow all origins (Angular, Thunder Client, etc.)
+CORS(app)  # enable cross-origin access
 
 # ---------------- LOAD MODEL ----------------
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded!")
-
-# ---------------- LOAD CLASS NAMES ----------------
-if os.path.isdir(DATA_DIR):
-    CLASS_NAMES = sorted([
-        d for d in os.listdir(DATA_DIR)
-        if os.path.isdir(os.path.join(DATA_DIR, d))
-    ])
-else:
-    CLASS_NAMES = []
-
-print("Classes:", CLASS_NAMES)
-
 
 # ---------------- IMAGE PREPROCESS ----------------
 def preprocess(img):
@@ -40,19 +73,17 @@ def preprocess(img):
     arr = np.expand_dims(arr, axis=0)
     return arr
 
-
 # ---------------- PREDICT FUNCTION ----------------
 def predict(img):
     arr = preprocess(img)
     preds = model.predict(arr)
     idx = int(np.argmax(preds))
     conf = float(np.max(preds))
-    label = CLASS_NAMES[idx] if CLASS_NAMES else str(idx)
+    label = CLASS_NAMES[idx] if idx < len(CLASS_NAMES) else str(idx)
     return label, conf
 
-
 # ======================================================
-# 📌 DEBUG ENDPOINT — CHECK WHAT Thunder Client is sending
+# 📌 DEBUG ENDPOINT — Check what Thunder Client sends
 # ======================================================
 @app.route("/debug", methods=["POST"])
 def debug():
@@ -63,15 +94,14 @@ def debug():
         "form_received": request.form.to_dict()
     })
 
-
 # ======================================================
 # 📌 MAIN PREDICT ENDPOINT
 # ======================================================
 @app.route("/predict", methods=["POST"])
 def predict_api():
 
-    print("FILES:", request.files)  # DEBUG PRINT
-    print("FORM:", request.form)    # DEBUG PRINT
+    print("FILES:", request.files)  # for debugging
+    print("FORM:", request.form)    # for debugging
 
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
@@ -89,6 +119,11 @@ def predict_api():
         "breed": breed,
         "confidence": confidence
     })
+
+# ---------------- ROOT ENDPOINT ----------------
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Cow Breed Prediction API is running"})
 
 
 # ---------------- RUN LOCALLY ----------------
