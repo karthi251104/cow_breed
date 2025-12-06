@@ -8,7 +8,7 @@ from flask_cors import CORS
 # ---------------- SETTINGS ----------------
 MODEL_PATH = "Best_Cattle_Breed.h5"
 IMAGE_SIZE = (224, 224)
-DATA_DIR = r"C:\Users\User\Downloads\archive\Indian_bovine_breeds\Indian_bovine_breeds"
+DATA_DIR = "data"
 
 # ---------------- FLASK APP ----------------
 app = Flask(__name__)
